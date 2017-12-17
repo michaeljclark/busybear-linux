@@ -138,6 +138,36 @@ Note: the disk image is stateful and needs to be shutdown cleanly.
 root@ucbvax:~# halt
 ```
 
+## linux bridged networking
+
+### bridge
+
+`/etc/network/interfaces`
+```
+iface br0 inet static
+  bridge_ports eth0
+  address 192.168.100.1
+  netmask 255.255.255.0
+  network 192.168.100.0
+  broadcast 192.168.100.255
+```
+
+### ifup script
+
+```
+#!/bin/sh
+
+brctl addif br0 $1
+ifconfig $1 up
+```
+
+### ifdown script
+
+```
+ifconfig $1 down
+brctl delif br0 $1
+```
+
 ## macOS bridged networking
 
 These steps show how to setup tuntap bridged networking on macOS:
@@ -162,14 +192,14 @@ sudo ifconfig bridge1 192.168.100.1/24
 ### ifup script
 
 ```
-#!/bin/bash
+#!/bin/sh
 ifconfig bridge1 addm $1
 ```
 
 ### ifdown script
 
 ```
-#!/bin/bash
+#!/bin/sh
 ifconfig bridge1 deletem $1
 ```
 
