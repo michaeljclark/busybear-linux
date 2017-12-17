@@ -99,7 +99,8 @@ and virtio-net devices.
 The following command starts busybear-linux.
 
 ```
-sudo qemu-system-riscv64 -nographic -machine virt -kernel bbl \
+sudo qemu-system-riscv64 -nographic -machine virt \
+  -kernel bbl -append "root=/dev/vda ro console=ttyS0" \
   -drive file=busybear.bin,format=raw,id=hd0 \
   -device virtio-blk-device,drive=hd0 \
   -netdev type=tap,script=./ifup,downscript=./ifdown,id=net0 \
@@ -214,7 +215,5 @@ CONFIG_VIRT_DRIVERS=y
 CONFIG_VIRTIO_MMIO=y
 CONFIG_EXT4_FS=y
 CONFIG_TMPFS=y
-CONFIG_CMDLINE_BOOL=y
-CONFIG_CMDLINE="root=/dev/vda ro"
 CONFIG_PRINTK_TIME=y
 ```
