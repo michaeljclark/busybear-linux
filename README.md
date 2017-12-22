@@ -164,6 +164,8 @@ ifconfig $1 up
 ### ifdown script
 
 ```
+#!/bin/sh
+
 ifconfig $1 down
 brctl delif br0 $1
 ```
