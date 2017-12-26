@@ -4,5 +4,5 @@
 ttyS0::respawn:/sbin/getty 115200 ttyS0
 ::respawn:/sbin/klogd -n
 ::respawn:/sbin/syslogd -n
-::respawn:/sbin/ntpd -n
+::respawn:/usr/sbin/ntpd -n
 ::respawn:/sbin/dropbear -R -F
