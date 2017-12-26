@@ -4,6 +4,11 @@
 /bin/busybox mount -o remount,rw /
 /bin/busybox mount -a
 /bin/busybox --install -s
-mkdir /dev/pts
+mkdir -p /dev/pts
 mount -t devpts devpts /dev/pts
 ifup -a
+
+for i in /etc/init.d/S??*
+do
+	$i start
+done
