@@ -6,9 +6,8 @@ clean:
 distclean: clean
 	rm -fr archives
 
-busybear.bin: scripts/build.sh scripts/image.sh
-	sh scripts/build.sh
-	sudo -E sh scripts/image.sh
+busybear.bin: scripts/build.sh
+	./scripts/build.sh
 
 archive:
 	tar --exclude build --exclude archives --exclude busybear.bin \

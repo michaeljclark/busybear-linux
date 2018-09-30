@@ -1,0 +1,3 @@
+[submodule "riscv-pk"]
+	path = deps/riscv-pk
+	url = ../riscv-pk.git
