@@ -96,6 +96,8 @@ make
 
 ### riscv-linux
 
+_Note: busybear-linux builds linux kernel automatically_
+
 ```
 git clone https://github.com/riscv/riscv-linux.git
 cd riscv-linux
@@ -106,6 +108,8 @@ make ARCH=riscv vmlinux
 ```
 
 ### bbl
+
+_Note: busybear-linux builds bbl automatically_
 
 ```
 git clone https://github.com/riscv/riscv-pk.git
@@ -124,14 +128,20 @@ make
 busybear requires the riscv-qemu `virt` board with virtio-block
 and virtio-net devices.
 
-The following command starts busybear-linux.
+The following command starts busybear-linux:
+
+```
+./scripts/run-qemu.sh
+```
+
+which runs executes this command:
 
 ```
 sudo qemu-system-riscv64 -nographic -machine virt \
   -kernel bbl -append "root=/dev/vda ro console=ttyS0" \
   -drive file=busybear.bin,format=raw,id=hd0 \
   -device virtio-blk-device,drive=hd0 \
-  -netdev type=tap,script=./ifup,downscript=./ifdown,id=net0 \
+  -netdev type=tap,script=scripts/ifup.sh,downscript=scripts/ifdown.sh,id=net0 \
   -device virtio-net-device,netdev=net0
 ```
 
@@ -247,31 +257,4 @@ sudo sysctl -w net.inet.ip.forwarding=1
 sudo pfctl -e
 sudo pfctl -F all
 sudo pfctl -f pfctl.rules 
-```
-
-## linux configuration
-
-The following is a minimal linux-kernel `.config` that can be used with
-`make ARCH=riscv olddefconfig`.
-
-```
-CONFIG_HZ_100=y
-CONFIG_PCI=y
-CONFIG_CROSS_COMPILE="riscv64-unknown-elf-"
-CONFIG_DEFAULT_HOSTNAME="ucbvax"
-CONFIG_PARTITION_ADVANCED=y
-CONFIG_NET=y
-CONFIG_UNIX=y
-CONFIG_INET=y
-CONFIG_VIRTIO_BLK=y
-CONFIG_NETDEVICES=y
-CONFIG_VIRTIO_NET=y
-CONFIG_SERIAL_8250=y
-CONFIG_SERIAL_8250_CONSOLE=y
-CONFIG_SERIAL_OF_PLATFORM=y
-CONFIG_VIRT_DRIVERS=y
-CONFIG_VIRTIO_MMIO=y
-CONFIG_EXT4_FS=y
-CONFIG_TMPFS=y
-CONFIG_PRINTK_TIME=y
 ```
