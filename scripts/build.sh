@@ -80,7 +80,7 @@ test -x build/linux-${LINUX_KERNEL_VERSION}/vmlinux || (
 test -d build/riscv-pk || mkdir build/riscv-pk
 test -x build/riscv-pk/bbl || (
     cd build/riscv-pk
-    ../../deps/riscv-pk/configure \
+    ../../src/riscv-pk/configure \
         --host=${CROSS_COMPILE%-} \
         --with-payload=../linux-${LINUX_KERNEL_VERSION}/vmlinux
     make -j$(nproc)
