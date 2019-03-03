@@ -14,7 +14,7 @@ for pre-built kernel and filesystem images.
 ## Copyright and License
 
 The busybear build system has been written by and is
-copyright (C) 2017 by Michael J. Clark <mjc@sifive.com>.
+copyright (C) 2017 by Michael J. Clark <michaeljclark@mac.com>.
 Enhancements to the build system have been contributed by and
 are copyright (C) 2017 by Karsten Merker <merker@debian.org>.
 
