@@ -80,7 +80,7 @@ to be run in Linux, even if preparing a root filesystem image for macOS.
 ### busybear-linux
 
 ```
-git clone https://github.com/michaeljclark/busybear-linux.git
+git clone --recursive https://github.com/michaeljclark/busybear-linux.git
 cd busybear-linux
 make
 ```
