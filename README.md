@@ -1,7 +1,7 @@
 # busybear-linux
 
 busybear-linux is a tiny RISC-V Linux root filesystem image that targets
-the `virt` board in riscv-qemu. As the name suggests, busybear-linux is
+the `virt` machine in riscv-qemu. As the name suggests, busybear-linux is
 a riscv-linux root image comprised of busybox and dropbear.
 
 The root image is intended to demonstrate virtio-net and virtio-block in
