@@ -80,6 +80,7 @@ copy_libs() {
                 done
             cd - > /dev/null
         done
+        cp ${PARSEC_HOME}/parsec_exec mnt/root
     fi
 
     # copy libraries
