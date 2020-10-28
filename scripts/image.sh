@@ -68,13 +68,17 @@ copy_libs() {
     cp build/busybox-${BUSYBOX_VERSION}/busybox mnt/bin/
     cp build/dropbear-${DROPBEAR_VERSION}/dropbear mnt/sbin/
     if [ -n "${PARSEC_HOME}" -a -d "${PARSEC_HOME}" ]; then
-        find ${PARSEC_HOME}/pkgs -type f -executable | xargs file | grep RISC-V | awk -F: '{print $1}' | grep inst | xargs -I pwet cp pwet mnt/bin
-        for dir in $(find ${PARSEC_HOME}/pkgs -name input_simsmall.tar | awk -F\/ '{printf("%s/%s/%s\n",$6,$7,$8)}')
+        mkdir -p mnt/root/bin
+        find ${PARSEC_HOME} -type f -executable | xargs file | grep RISC-V | awk -F: '{print $1}' | grep inst | xargs -I pwet cp pwet mnt/root/bin
+        for dir in $(find ${PARSEC_HOME} -name input_sim\*.tar | sed -e "s+${PARSEC_HOME}/*++" | xargs dirname)
         do
             mkdir -p mnt/root/${dir}
             cd mnt/root/${dir}
-            tar xf ${PARSEC_HOME}/pkgs/${dir}/input_sim${SIM_SIZE}.tar
-            cd -
+            for size in large medium small
+                do
+                   tar xf ${PARSEC_HOME}/${dir}/input_sim${size}.tar
+                done
+            cd - > /dev/null
         done
     fi
 
