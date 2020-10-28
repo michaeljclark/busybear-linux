@@ -4,6 +4,10 @@ set -e
 
 . conf/busybear.config
 
+if [ -f conf/parsec.config ] ; then
+    . conf/parsec.config
+fi
+
 #
 # locate compiler
 #
@@ -63,14 +67,16 @@ copy_libs() {
     # copy busybox and dropbear
     cp build/busybox-${BUSYBOX_VERSION}/busybox mnt/bin/
     cp build/dropbear-${DROPBEAR_VERSION}/dropbear mnt/sbin/
-    find /work/petrot/parsec-3.0/pkgs -type f -executable | xargs file | grep RISC-V | awk -F: '{print $1}' | grep inst | xargs -I pwet cp pwet mnt/bin
-    for dir in $(find /work/petrot/parsec-3.0/pkgs -name input_simsmall.tar | awk -F\/ '{printf("%s/%s/%s\n",$6,$7,$8)}')
-    do
-        mkdir -p mnt/root/${dir}
-        cd mnt/root/${dir}
-        tar xf /work/petrot/parsec-3.0/pkgs/${dir}/input_simmedium.tar
-        cd -
-    done
+    if [ -n "${PARSEC_HOME}" -a -d "${PARSEC_HOME}" ]; then
+        find ${PARSEC_HOME}/pkgs -type f -executable | xargs file | grep RISC-V | awk -F: '{print $1}' | grep inst | xargs -I pwet cp pwet mnt/bin
+        for dir in $(find ${PARSEC_HOME}/pkgs -name input_simsmall.tar | awk -F\/ '{printf("%s/%s/%s\n",$6,$7,$8)}')
+        do
+            mkdir -p mnt/root/${dir}
+            cd mnt/root/${dir}
+            tar xf ${PARSEC_HOME}/pkgs/${dir}/input_sim${SIM_SIZE}.tar
+            cd -
+        done
+    fi
 
     # copy libraries
     if [ -d ${GCC_DIR}/sysroot/usr/lib${ARCH/riscv/}/${ABI}/ ]; then
@@ -116,5 +122,6 @@ fi
 #
 # finish
 #
+sync
 umount mnt
 rmdir mnt
