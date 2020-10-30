@@ -91,5 +91,4 @@ test -x build/riscv-pk/bbl || (
 #
 # create filesystem image
 #
-sudo env PATH=${PATH} UID=$(id -u) GID=$(id -g) \
 ./scripts/image.sh

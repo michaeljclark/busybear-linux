@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 set -e
 
@@ -21,11 +21,8 @@ fi
 # create root filesystem
 #
 rm -f ${IMAGE_FILE}
-dd if=/dev/zero of=${IMAGE_FILE} bs=1M count=${IMAGE_SIZE}
-chown ${UID}:${GID} ${IMAGE_FILE}
-/sbin/mkfs.ext4 -j -F ${IMAGE_FILE}
-test -d mnt || mkdir mnt
-mount -o loop ${IMAGE_FILE} mnt
+rm -rf mnt
+mkdir mnt
 
 set +e
 
@@ -108,10 +105,18 @@ copy_libs() {
     ln -s ../bin/busybox mnt/sbin/init
     ln -s busybox mnt/bin/sh
     cp bin/ldd mnt/bin/ldd
-    mknod mnt/dev/console c 5 1
-    mknod mnt/dev/ttyS0 c 4 64
-    mknod mnt/dev/null c 1 3
 )
+
+#
+# finish
+#
+cat > mnt/devlist << EOF
+/dev         d  755  0  0  -  -
+/dev/console c  640  0  0  5  1
+/dev/ttyS0   c  640  0  0  4  64
+/dev/null    c  640  0  0  1  3
+EOF
+genext2fs --squash -b $((1024 * ${IMAGE_SIZE})) -d mnt ${IMAGE_FILE}
 
 #
 # remove if configure failed
@@ -125,8 +130,6 @@ else
 fi
 
 #
-# finish
+# erase temporary files
 #
-sync
-umount mnt
-rmdir mnt
+rm -rf mnt
