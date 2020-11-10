@@ -34,9 +34,10 @@ test -f archives/busybox-${BUSYBOX_VERSION}.tar.bz2 || \
 test -f archives/dropbear-${DROPBEAR_VERSION}.tar.bz2 || \
     curl -L -o archives/dropbear-${DROPBEAR_VERSION}.tar.bz2 \
         https://matt.ucc.asn.au/dropbear/releases/dropbear-${DROPBEAR_VERSION}.tar.bz2
-test -f archives/linux-${LINUX_KERNEL_VERSION}.tar.gz || \
-    curl -L -o archives/linux-${LINUX_KERNEL_VERSION}.tar.gz \
-        https://git.kernel.org/torvalds/t/linux-${LINUX_KERNEL_VERSION}.tar.gz
+test -f archives/linux-${LINUX_KERNEL_VERSION}.tar.xz || \
+    curl -L -o archives/linux-${LINUX_KERNEL_VERSION}.tar.xz \
+        https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_KERNEL_VERSION}.tar.xz
+        #https://git.kernel.org/torvalds/t/linux-${LINUX_KERNEL_VERSION}.tar.gz
 
 #
 # extract busybox, dropbear and linux
@@ -47,7 +48,7 @@ test -d build/busybox-${BUSYBOX_VERSION} || \
 test -d build/dropbear-${DROPBEAR_VERSION} || \
     tar -C build -xjf archives/dropbear-${DROPBEAR_VERSION}.tar.bz2
 test -d build/linux-${LINUX_KERNEL_VERSION} || \
-    tar -C build -xzf archives/linux-${LINUX_KERNEL_VERSION}.tar.gz
+    tar -C build -xJf archives/linux-${LINUX_KERNEL_VERSION}.tar.xz
 
 #
 # set default configurations
@@ -68,27 +69,20 @@ test -x build/dropbear-${DROPBEAR_VERSION}/dropbear || (
     ./configure --host=${CROSS_COMPILE%-} --disable-zlib
     make -j$(nproc)
 )
-test -x build/linux-${LINUX_KERNEL_VERSION}/vmlinux || (
+test -x build/linux-${LINUX_KERNEL_VERSION}/Image || (
     cd build/linux-${LINUX_KERNEL_VERSION}
     # Quick and dirty hack to avoid known compilation issue
     sed -e 's/^YYLTYPE yylloc;/extern &/' -i scripts/dtc/dtc-lexer.l
+    # Allow more than 32 CPUs max when configuring the kernel
+    echo "$(awk '/config NR_CPUS/,/^$/{sub(/32/,"1024"); print $0;next}{print $0}' arch/riscv/Kconfig)" > arch/riscv/Kconfig
     make ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} olddefconfig
-    make -j$(nproc) ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} vmlinux
-)
-
-#
-# build bbl
-#
-test -d build/riscv-pk || mkdir build/riscv-pk
-test -x build/riscv-pk/bbl || (
-    cd build/riscv-pk
-    ../../src/riscv-pk/configure \
-        --host=${CROSS_COMPILE%-} \
-        --with-payload=../linux-${LINUX_KERNEL_VERSION}/vmlinux
-    make -j$(nproc)
+    make -j$(nproc) ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} Image
 )
 
 #
 # create filesystem image
 #
 ./scripts/image.sh
+
+# run with, e.g.s, from busybear repo:
+#../qemu/build-master/qemu-system-riscv64 -nographic -kernel build/linux-5.9.6/arch/riscv/boot/Image -machine virt -append "root=/dev/vda ro console=ttyS0" -drive file=./busybear.bin,format=raw,id=hd0 -device virtio-blk-device,drive=hd0 -accel tcg,thread=multi -smp 128 -m 16G

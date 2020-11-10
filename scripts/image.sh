@@ -117,6 +117,7 @@ cat > mnt/devlist << EOF
 /dev/null    c  640  0  0  1  3
 EOF
 genext2fs --squash -b $((1024 * ${IMAGE_SIZE})) -d mnt ${IMAGE_FILE}
+sync
 /sbin/e2fsck -y -f ${IMAGE_FILE}
 
 #
