@@ -1,3 +1,3 @@
-[submodule "riscv-pk"]
+[submodule "src/riscv-pk"]
 	path = src/riscv-pk
-	url = ../riscv-pk.git
+	url = https://github.com/riscv/riscv-pk.git

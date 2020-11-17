@@ -70,6 +70,8 @@ test -x build/dropbear-${DROPBEAR_VERSION}/dropbear || (
 )
 test -x build/linux-${LINUX_KERNEL_VERSION}/vmlinux || (
     cd build/linux-${LINUX_KERNEL_VERSION}
+    # Quick and dirty hack to avoid known compilation issue
+    sed -e 's/^YYLTYPE yylloc;/extern &/' -i scripts/dtc/dtc-lexer.l
     make ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} olddefconfig
     make -j$(nproc) ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} vmlinux
 )
@@ -89,5 +91,4 @@ test -x build/riscv-pk/bbl || (
 #
 # create filesystem image
 #
-sudo env PATH=${PATH} UID=$(id -u) GID=$(id -g) \
 ./scripts/image.sh

@@ -4,6 +4,10 @@ set -e
 
 . conf/busybear.config
 
+if [ -f conf/parsec.config ] ; then
+    . conf/parsec.config
+fi
+
 #
 # locate compiler
 #
@@ -17,11 +21,8 @@ fi
 # create root filesystem
 #
 rm -f ${IMAGE_FILE}
-dd if=/dev/zero of=${IMAGE_FILE} bs=1M count=${IMAGE_SIZE}
-chown ${UID}:${GID} ${IMAGE_FILE}
-/sbin/mkfs.ext4 -j -F ${IMAGE_FILE}
-test -d mnt || mkdir mnt
-mount -o loop ${IMAGE_FILE} mnt
+rm -rf mnt
+mkdir mnt
 
 set +e
 
@@ -63,6 +64,21 @@ copy_libs() {
     # copy busybox and dropbear
     cp build/busybox-${BUSYBOX_VERSION}/busybox mnt/bin/
     cp build/dropbear-${DROPBEAR_VERSION}/dropbear mnt/sbin/
+    if [ -n "${PARSEC_HOME}" -a -d "${PARSEC_HOME}" ]; then
+        mkdir -p mnt/root/bin
+        find ${PARSEC_HOME} -type f -executable | xargs file | grep RISC-V | awk -F: '{print $1}' | grep inst | xargs -I pwet cp pwet mnt/root/bin
+        for dir in $(find ${PARSEC_HOME} -name input_sim\*.tar | sed -e "s+${PARSEC_HOME}/*++" | xargs dirname)
+        do
+            mkdir -p mnt/root/${dir}
+            cd mnt/root/${dir}
+            for size in large medium small
+                do
+                   tar xf ${PARSEC_HOME}/${dir}/input_sim${size}.tar
+                done
+            cd - > /dev/null
+        done
+        cp ${PARSEC_HOME}/parsec_exec mnt/root
+    fi
 
     # copy libraries
     if [ -d ${GCC_DIR}/sysroot/usr/lib${ARCH/riscv/}/${ABI}/ ]; then
@@ -89,10 +105,19 @@ copy_libs() {
     ln -s ../bin/busybox mnt/sbin/init
     ln -s busybox mnt/bin/sh
     cp bin/ldd mnt/bin/ldd
-    mknod mnt/dev/console c 5 1
-    mknod mnt/dev/ttyS0 c 4 64
-    mknod mnt/dev/null c 1 3
 )
+
+#
+# finish
+#
+cat > mnt/devlist << EOF
+/dev         d  755  0  0  -  -
+/dev/console c  640  0  0  5  1
+/dev/ttyS0   c  640  0  0  4  64
+/dev/null    c  640  0  0  1  3
+EOF
+genext2fs --squash -b $((1024 * ${IMAGE_SIZE})) -d mnt ${IMAGE_FILE}
+/sbin/e2fsck -y -f ${IMAGE_FILE}
 
 #
 # remove if configure failed
@@ -106,7 +131,6 @@ else
 fi
 
 #
-# finish
+# erase temporary files
 #
-umount mnt
-rmdir mnt
+rm -rf mnt

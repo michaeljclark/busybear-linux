@@ -137,7 +137,7 @@ The following command starts busybear-linux:
 which runs executes this command:
 
 ```
-sudo qemu-system-riscv64 -nographic -machine virt \
+sudo qemu-system-riscv64 -nographic -machine virt -bios none \
   -kernel bbl -append "root=/dev/vda ro console=ttyS0" \
   -drive file=busybear.bin,format=raw,id=hd0 \
   -device virtio-blk-device,drive=hd0 \
