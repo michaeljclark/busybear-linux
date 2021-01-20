@@ -131,7 +131,7 @@ and virtio-net devices.
 The following command starts busybear-linux:
 
 ```
-./scripts/run-qemu.sh
+./scripts/start-qemu.sh
 ```
 
 which runs executes this command:
