@@ -131,7 +131,7 @@ and virtio-net devices.
 The following command starts busybear-linux:
 
 ```
-./scripts/run-qemu.sh
+./scripts/start-qemu.sh
 ```
 
 which runs executes this command:
@@ -182,7 +182,7 @@ root@ucbvax:~# halt
 
 `/etc/network/interfaces`
 ```
-iface br0 inet static
+iface virbr0 inet static
   bridge_ports eth0
   address 192.168.100.1
   netmask 255.255.255.0
@@ -195,7 +195,7 @@ iface br0 inet static
 ```
 #!/bin/sh
 
-brctl addif br0 $1
+brctl addif virbr0 $1
 ifconfig $1 up
 ```
 
@@ -205,7 +205,7 @@ ifconfig $1 up
 #!/bin/sh
 
 ifconfig $1 down
-brctl delif br0 $1
+brctl delif virbr0 $1
 ```
 
 ## macOS bridged networking
