@@ -12,7 +12,7 @@ then
 	exit 1
 fi
 
-CPUS_DATA=$(lscpu --all --parse=SOCKET,CORE,CPU | grep -vP '^(#)' | sort -t ',' -n)
+CPUS_DATA=$(lscpu --all --parse=SOCKET,CORE,CPU | grep -vP '^(#)' | sort -t ',' -k 1,1n -k 2,2n -k 3,3n)
 
 THREADS=$(echo "$CPUS_DATA" | wc -l)
 CORES=$(echo "$CPUS_DATA" | cut -d ',' -f 2 | sort | uniq | wc -l)
@@ -23,12 +23,13 @@ while read cpu_entry; do
   LIST+=($(echo $cpu_entry | cut -d ',' -f 3))
 done <<< "$CPUS_DATA"
 
-if [ $2 = 1 ] || [ $2 -gt 32 ]
+if [ $2 = 1 ]
 then
 	QEMU_SMP="-smp $2"
 else
-	QEMU_SMP="-smp $2,cores=$(($2 / 2)),threads=$(($THREADS / $CORES))"
+	QEMU_SMP="-smp $2,cores=$(($(($2 + 1))/$(($THREADS / $CORES)))),threads=$(($THREADS / $CORES))"
 fi
+
 
 for vcpu in $(seq 0 $(($2 - 1)));
 do
@@ -38,10 +39,12 @@ done
 if [ "$1" = "pinning" ]
 then
 	echo "${QEMU_PATH} ${QEMU_PARAMS} ${QEMU_SMP} ${QEMU_AFFINITIES}"
-	eval "exec ${QEMU_PATH} ${QEMU_PARAMS} ${QEMU_SMP} ${QEMU_AFFINITIES}"
+	eval "exec perf stat -d ${QEMU_PATH} ${QEMU_PARAMS} ${QEMU_SMP} ${QEMU_AFFINITIES}"
+	#eval "exec ${QEMU_PATH} ${QEMU_PARAMS} ${QEMU_SMP} ${QEMU_AFFINITIES}"
 elif [ "$1" = "no_pinning" ]
 then
 	QEMU_PARAMS="${QEMU_PARAMS} -smp $2"
 	echo "${QEMU_PATH} ${QEMU_PARAMS}"
-	eval "exec ${QEMU_PATH} ${QEMU_PARAMS}"
+	eval "exec perf stat -d ${QEMU_PATH} ${QEMU_PARAMS}"
+	#eval "exec ${QEMU_PATH} ${QEMU_PARAMS}"
 fi
