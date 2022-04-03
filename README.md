@@ -1,3 +1,38 @@
+# Short introduction note
+
+Busybear Linux is the work of Michael J. Clark, this fork is used for
+providing a simple linux set-up on risc-v for tearching or research
+works in my group.
+It was in particular used to check QEMU scalability with and without
+pinning, and the disk may include a version of the parsec benchmarks.
+
+We update to new versions of the kernel and busybox once on a while,
+usually when we need to do new stuffs.
+
+We also added the possibility to build a 32-bit kernel.
+Default is to compile for riscv64, change comments in `config/busybear.config`
+to compile for riscv32.
+This allows to check that we do not break too many things when hacking in
+QEMU.
+
+Note that _this is meant to be compiled with a home made cross-dev
+toolchain_, as there are sysroot dependencies that some distros do not
+provide, TTBOMK.
+
+Also, you cannot compile the 32 and 64 bit versions at the same time, however
+the generated files are in different directories or have different names at the
+end, so you can have both systems sitting on your machine at the same time after
+compilation.
+
+Typical command-lines:
+```
+../qemu-vp/build-rtan/qemu-system-riscv32 -nographic -kernel build/linux-5.15.32-riscv32/arch/riscv/boot/Image -machine virt -append "root=/dev/vda ro console=ttyS0 debug" -drive file=busybear-riscv32.bin,format=raw,id=hd0 -device virtio-blk-device,drive=hd0 -accel tcg,thread=multi -smp 128
+```
+and
+```
+../qemu-vp/build-rtan/qemu-system-riscv64 -nographic -kernel build/linux-5.15.32-riscv64/arch/riscv/boot/Image -machine virt -append "root=/dev/vda ro console=ttyS0 debug" -drive file=busybear-riscv64.bin,format=raw,id=hd0 -device virtio-blk-device,drive=hd0 -accel tcg,thread=multi -smp 32
+```
+
 # busybear-linux
 
 busybear-linux is a tiny RISC-V Linux root filesystem image that targets
@@ -80,7 +115,7 @@ to be run in Linux, even if preparing a root filesystem image for macOS.
 ### busybear-linux
 
 ```
-git clone --recursive https://github.com/michaeljclark/busybear-linux.git
+git clone --recursive https://github.com/fpetrot/busybear-linux.git
 cd busybear-linux
 make
 ```

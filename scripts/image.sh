@@ -2,9 +2,7 @@
 
 set -e
 
-. conf/busybear.config
-
-if [ -f conf/parsec.config ] ; then
+if [ ${ARCH} = riscv64 -a -f conf/parsec.config ] ; then
     . conf/parsec.config
 fi
 
@@ -49,6 +47,9 @@ copy_libs() {
 (
     set -e
 
+    # now we have installed busybox in /tmp
+    cp -r /tmp/mnt .
+
     # create directories
     for dir in root bin dev etc lib lib/modules proc sbin sys tmp \
         usr usr/bin usr/sbin var var/run var/log var/tmp \
@@ -77,7 +78,10 @@ copy_libs() {
                 done
             cd - > /dev/null
         done
+	tar xf ${PARSEC_HOME}/pkgs/apps/blackscholes/inputs/input_native.tar -C mnt/root/pkgs/apps/blackscholes/inputs
+	tar xf ${PARSEC_HOME}/pkgs/apps/bodytrack/inputs/input_native.tar -C mnt/root/pkgs/apps/bodytrack/inputs
         cp ${PARSEC_HOME}/parsec_exec mnt/root
+        cp ${PARSEC_HOME}/parsec_eval mnt/root
     fi
 
     # copy libraries
@@ -102,8 +106,8 @@ copy_libs() {
     chmod 600 mnt/etc/shadow
     touch mnt/var/log/lastlog
     touch mnt/var/log/wtmp
-    ln -s ../bin/busybox mnt/sbin/init
-    ln -s busybox mnt/bin/sh
+    #ln -s ../bin/busybox mnt/sbin/init
+    #ln -s busybox mnt/bin/sh
     cp bin/ldd mnt/bin/ldd
 )
 
@@ -117,6 +121,7 @@ cat > mnt/devlist << EOF
 /dev/null    c  640  0  0  1  3
 EOF
 genext2fs --squash -b $((1024 * ${IMAGE_SIZE})) -d mnt ${IMAGE_FILE}
+sync
 /sbin/e2fsck -y -f ${IMAGE_FILE}
 
 #
@@ -133,4 +138,4 @@ fi
 #
 # erase temporary files
 #
-rm -rf mnt
+#rm -rf mnt /tmp/mnt
