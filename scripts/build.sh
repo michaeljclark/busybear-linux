@@ -26,7 +26,6 @@ done
 #
 # download busybox, dropbear and linux
 #
-export MAKEFLAGS=-j4
 test -d archives || mkdir archives
 test -f archives/busybox-${BUSYBOX_VERSION}.tar.bz2 || \
     curl -L -o archives/busybox-${BUSYBOX_VERSION}.tar.bz2 \
@@ -43,31 +42,44 @@ test -f archives/linux-${LINUX_KERNEL_VERSION}.tar.xz || \
 # extract busybox, dropbear and linux
 #
 test -d build || mkdir build
-test -d build/busybox-${BUSYBOX_VERSION} || \
+test -d build/busybox-${BUSYBOX_VERSION}-${ARCH} || \
     tar -C build -xjf archives/busybox-${BUSYBOX_VERSION}.tar.bz2
-test -d build/dropbear-${DROPBEAR_VERSION} || \
+test -d build/dropbear-${DROPBEAR_VERSION}-${ARCH} || \
     tar -C build -xjf archives/dropbear-${DROPBEAR_VERSION}.tar.bz2
-test -d build/linux-${LINUX_KERNEL_VERSION} || \
+test -d build/linux-${LINUX_KERNEL_VERSION}-${ARCH} || \
     tar -C build -xJf archives/linux-${LINUX_KERNEL_VERSION}.tar.xz
+
+#
+# overwrite variables to support generating 64 and 32 bit kernels
+#
+mv build/busybox-${BUSYBOX_VERSION} build/busybox-${BUSYBOX_VERSION}-${ARCH}
+mv build/dropbear-${DROPBEAR_VERSION} build/dropbear-${DROPBEAR_VERSION}-${ARCH}
+mv build/linux-${LINUX_KERNEL_VERSION} build/linux-${LINUX_KERNEL_VERSION}-${ARCH}
+BUSYBOX_VERSION=${BUSYBOX_VERSION}-${ARCH}
+DROPBEAR_VERSION=${DROPBEAR_VERSION}-${ARCH}
+LINUX_KERNEL_VERSION=${LINUX_KERNEL_VERSION}-${ARCH}
 
 #
 # set default configurations
 #
 cp conf/busybox.config build/busybox-${BUSYBOX_VERSION}/.config
-cp conf/linux.config build/linux-${LINUX_KERNEL_VERSION}/.config
+cp conf/linux-${ARCH}.config build/linux-${LINUX_KERNEL_VERSION}/.config
 
 #
 # build busybox, dropbear and linux
 #
+export MAKEFLAGS=-j$(nproc)
 test -x build/busybox-${BUSYBOX_VERSION}/busybox || (
     cd build/busybox-${BUSYBOX_VERSION}
     make ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} oldconfig
-    make ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} -j$(nproc)
+    # Install in /tmp to make sure it is a fresh install
+    rm -rf /tmp/mnt
+    make ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} CONFIG_PREFIX=/tmp/mnt install
 )
 test -x build/dropbear-${DROPBEAR_VERSION}/dropbear || (
     cd build/dropbear-${DROPBEAR_VERSION}
     ./configure --host=${CROSS_COMPILE%-} --disable-zlib
-    make -j$(nproc)
+    make
 )
 test -x build/linux-${LINUX_KERNEL_VERSION}/Image || (
     cd build/linux-${LINUX_KERNEL_VERSION}
@@ -76,13 +88,13 @@ test -x build/linux-${LINUX_KERNEL_VERSION}/Image || (
     # Allow more than 32 CPUs max when configuring the kernel
     echo "$(awk '/config NR_CPUS/,/^$/{sub(/32/,"1024"); print $0;next}{print $0}' arch/riscv/Kconfig)" > arch/riscv/Kconfig
     make ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} olddefconfig
-    make -j$(nproc) ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} Image
+    make ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} Image
 )
 
 #
 # create filesystem image
 #
-./scripts/image.sh
+. ./scripts/image.sh
 
-# run with, e.g.s, from busybear repo:
+# run with, e.g, from busybear repo:
 #../qemu/build-master/qemu-system-riscv64 -nographic -kernel build/linux-5.9.6/arch/riscv/boot/Image -machine virt -append "root=/dev/vda ro console=ttyS0" -drive file=./busybear.bin,format=raw,id=hd0 -device virtio-blk-device,drive=hd0 -accel tcg,thread=multi -smp 128 -m 16G

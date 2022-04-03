@@ -2,7 +2,7 @@
 
 set -e
 
-. conf/busybear.config
+# . conf/busybear.config
 
 if [ -f conf/parsec.config ] ; then
     . conf/parsec.config
@@ -48,6 +48,9 @@ copy_libs() {
 #
 (
     set -e
+
+    # now we have installed busybox in /tmp
+    cp -r /tmp/mnt .
 
     # create directories
     for dir in root bin dev etc lib lib/modules proc sbin sys tmp \
@@ -102,8 +105,8 @@ copy_libs() {
     chmod 600 mnt/etc/shadow
     touch mnt/var/log/lastlog
     touch mnt/var/log/wtmp
-    ln -s ../bin/busybox mnt/sbin/init
-    ln -s busybox mnt/bin/sh
+    #ln -s ../bin/busybox mnt/sbin/init
+    #ln -s busybox mnt/bin/sh
     cp bin/ldd mnt/bin/ldd
 )
 
@@ -134,4 +137,4 @@ fi
 #
 # erase temporary files
 #
-rm -rf mnt
+rm -rf mnt /tmp/mnt
