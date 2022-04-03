@@ -2,9 +2,7 @@
 
 set -e
 
-# . conf/busybear.config
-
-if [ -f conf/parsec.config ] ; then
+if [ ${ARCH} = riscv64 -a -f conf/parsec.config ] ; then
     . conf/parsec.config
 fi
 
@@ -140,4 +138,4 @@ fi
 #
 # erase temporary files
 #
-rm -rf mnt /tmp/mnt
+#rm -rf mnt /tmp/mnt

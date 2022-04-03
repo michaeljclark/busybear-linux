@@ -43,18 +43,18 @@ test -f archives/linux-${LINUX_KERNEL_VERSION}.tar.xz || \
 #
 test -d build || mkdir build
 test -d build/busybox-${BUSYBOX_VERSION}-${ARCH} || \
-    tar -C build -xjf archives/busybox-${BUSYBOX_VERSION}.tar.bz2
+    (tar -C build -xjf archives/busybox-${BUSYBOX_VERSION}.tar.bz2 && \
+     mv build/busybox-${BUSYBOX_VERSION} build/busybox-${BUSYBOX_VERSION}-${ARCH})
 test -d build/dropbear-${DROPBEAR_VERSION}-${ARCH} || \
-    tar -C build -xjf archives/dropbear-${DROPBEAR_VERSION}.tar.bz2
+    (tar -C build -xjf archives/dropbear-${DROPBEAR_VERSION}.tar.bz2 && \
+     mv build/dropbear-${DROPBEAR_VERSION} build/dropbear-${DROPBEAR_VERSION}-${ARCH})
 test -d build/linux-${LINUX_KERNEL_VERSION}-${ARCH} || \
-    tar -C build -xJf archives/linux-${LINUX_KERNEL_VERSION}.tar.xz
+    (tar -C build -xJf archives/linux-${LINUX_KERNEL_VERSION}.tar.xz && \
+     mv build/linux-${LINUX_KERNEL_VERSION} build/linux-${LINUX_KERNEL_VERSION}-${ARCH})
 
 #
 # overwrite variables to support generating 64 and 32 bit kernels
 #
-mv build/busybox-${BUSYBOX_VERSION} build/busybox-${BUSYBOX_VERSION}-${ARCH}
-mv build/dropbear-${DROPBEAR_VERSION} build/dropbear-${DROPBEAR_VERSION}-${ARCH}
-mv build/linux-${LINUX_KERNEL_VERSION} build/linux-${LINUX_KERNEL_VERSION}-${ARCH}
 BUSYBOX_VERSION=${BUSYBOX_VERSION}-${ARCH}
 DROPBEAR_VERSION=${DROPBEAR_VERSION}-${ARCH}
 LINUX_KERNEL_VERSION=${LINUX_KERNEL_VERSION}-${ARCH}
