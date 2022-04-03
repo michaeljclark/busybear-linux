@@ -1,3 +1,15 @@
+# Short introduction note
+
+  Busybear Linux is the work of Michael J. Clark, this fork is used for
+  providing a simple linux set-up on risc-v for research works in my
+  group.
+
+  We update to new versions of the kernel and busybox once on a while.
+
+  Note that this is meant to be compiled with a home made cross-dev
+  toolchain, as there are sysroot dependencies that some distros do not
+  provide, TTBOMK.
+
 # busybear-linux
 
 busybear-linux is a tiny RISC-V Linux root filesystem image that targets
