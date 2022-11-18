@@ -35,7 +35,7 @@ test -f archives/dropbear-${DROPBEAR_VERSION}.tar.bz2 || \
         https://matt.ucc.asn.au/dropbear/releases/dropbear-${DROPBEAR_VERSION}.tar.bz2
 test -f archives/linux-${LINUX_KERNEL_VERSION}.tar.xz || \
     curl -L -o archives/linux-${LINUX_KERNEL_VERSION}.tar.xz \
-        https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_KERNEL_VERSION}.tar.xz
+        https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-${LINUX_KERNEL_VERSION}.tar.xz
         #https://git.kernel.org/torvalds/t/linux-${LINUX_KERNEL_VERSION}.tar.gz
 
 #
@@ -71,15 +71,15 @@ cp conf/linux-${ARCH}.config build/linux-${LINUX_KERNEL_VERSION}/.config
 export MAKEFLAGS=-j$(nproc)
 test -x build/busybox-${BUSYBOX_VERSION}/busybox || (
     cd build/busybox-${BUSYBOX_VERSION}
-    make ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} oldconfig
+    make -j ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} oldconfig
     # Install in /tmp to make sure it is a fresh install
     rm -rf /tmp/mnt
-    make ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} CONFIG_PREFIX=/tmp/mnt install
+    make -j ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} CONFIG_PREFIX=/tmp/mnt install
 )
 test -x build/dropbear-${DROPBEAR_VERSION}/dropbear || (
     cd build/dropbear-${DROPBEAR_VERSION}
     ./configure --host=${CROSS_COMPILE%-} --disable-zlib
-    make
+    make -j
 )
 test -x build/linux-${LINUX_KERNEL_VERSION}/Image || (
     cd build/linux-${LINUX_KERNEL_VERSION}
@@ -87,8 +87,8 @@ test -x build/linux-${LINUX_KERNEL_VERSION}/Image || (
     sed -e 's/^YYLTYPE yylloc;/extern &/' -i scripts/dtc/dtc-lexer.l
     # Allow more than 32 CPUs max when configuring the kernel
     echo "$(awk '/config NR_CPUS/,/^$/{sub(/32/,"1024"); print $0;next}{print $0}' arch/riscv/Kconfig)" > arch/riscv/Kconfig
-    make ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} olddefconfig
-    make ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} Image
+    make -j ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} olddefconfig
+    make -j ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} Image
 )
 
 #
