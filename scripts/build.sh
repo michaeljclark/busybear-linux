@@ -86,7 +86,7 @@ test -x build/linux-${LINUX_KERNEL_VERSION}/Image || (
     # Quick and dirty hack to avoid known compilation issue
     sed -e 's/^YYLTYPE yylloc;/extern &/' -i scripts/dtc/dtc-lexer.l
     # Allow more than 32 CPUs max when configuring the kernel
-    echo "$(awk '/config NR_CPUS/,/^$/{sub(/32/,"1024"); print $0;next}{print $0}' arch/riscv/Kconfig)" > arch/riscv/Kconfig
+    echo "$(awk '/config NR_CPUS/,/^$/{sub(/"8"/,"1024"); print $0;next}{print $0}' arch/riscv/Kconfig)" > arch/riscv/Kconfig
     make ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} olddefconfig
     make ARCH=riscv CROSS_COMPILE=${CROSS_COMPILE} Image
 )
