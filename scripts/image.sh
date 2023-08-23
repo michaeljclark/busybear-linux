@@ -2,9 +2,11 @@
 
 set -e
 
-if [ ${ARCH} = riscv64 -a -f conf/parsec.config ] ; then
+if test "${ARCH}" = "riscv64" -a -f conf/parsec.config ; then
     . conf/parsec.config
 fi
+
+. conf/busybear.config
 
 #
 # locate compiler
@@ -34,7 +36,7 @@ copy_libs() {
         elif [[ -e "$2/$(basename $lib)" ]]; then
             : # continue
         elif [[ -h "$lib" ]]; then
-            ln -s $(basename $(readlink $lib)) $2/$(basename $lib)
+            ln -s $(basename $(realpath $lib)) $2/$(basename $lib)
         else
             cp -a $lib $2/$(basename $lib)
         fi
@@ -63,8 +65,8 @@ copy_libs() {
     done
 
     # copy busybox and dropbear
-    cp build/busybox-${BUSYBOX_VERSION}/busybox mnt/bin/
-    cp build/dropbear-${DROPBEAR_VERSION}/dropbear mnt/sbin/
+    cp build/busybox-${BUSYBOX_VERSION}-${ARCH}/busybox mnt/bin/
+    cp build/dropbear-${DROPBEAR_VERSION}-${ARCH}/dropbear mnt/sbin/
     if [ -n "${PARSEC_HOME}" -a -d "${PARSEC_HOME}" ]; then
         mkdir -p mnt/root/bin
         find ${PARSEC_HOME} -type f -executable | xargs file | grep RISC-V | awk -F: '{print $1}' | grep inst | xargs -I pwet cp pwet mnt/root/bin
@@ -78,23 +80,31 @@ copy_libs() {
                 done
             cd - > /dev/null
         done
-	tar xf ${PARSEC_HOME}/pkgs/apps/blackscholes/inputs/input_native.tar -C mnt/root/pkgs/apps/blackscholes/inputs
-	tar xf ${PARSEC_HOME}/pkgs/apps/bodytrack/inputs/input_native.tar -C mnt/root/pkgs/apps/bodytrack/inputs
+        tar xf ${PARSEC_HOME}/pkgs/apps/blackscholes/inputs/input_native.tar -C mnt/root/pkgs/apps/blackscholes/inputs
+        tar xf ${PARSEC_HOME}/pkgs/apps/bodytrack/inputs/input_native.tar -C mnt/root/pkgs/apps/bodytrack/inputs
         cp ${PARSEC_HOME}/parsec_exec mnt/root
         cp ${PARSEC_HOME}/parsec_eval mnt/root
     fi
 
+    # check that the cross-dev env contains the sysroot directory
+    # probably should do that earlier, ...
+    SYSROOT=$(realpath ${GCC_DIR}/sysroot/)
+    if [ -z "${SYSROOT}" ] ; then
+        echo "You must use a linux capable cross-dev environment"
+        exit
+    fi
+
     # copy libraries
-    if [ -d ${GCC_DIR}/sysroot/usr/lib${ARCH/riscv/}/${ABI}/ ]; then
+    if [ -d ${SYSROOT}/usr/lib${ARCH/riscv/}/${ABI}/ ]; then
         ABI_DIR=lib${ARCH/riscv/}/${ABI}
     else
         ABI_DIR=lib
     fi
     LDSO_NAME=ld-linux-${ARCH}-${ABI}.so.1
-    LDSO_TARGET=$(readlink ${GCC_DIR}/sysroot/lib/${LDSO_NAME})
+    LDSO_TARGET=${SYSROOT}/lib/${LDSO_NAME}
     mkdir -p mnt/${ABI_DIR}/
-    copy_libs $(dirname ${GCC_DIR}/sysroot/lib/${LDSO_TARGET})/ mnt/${ABI_DIR}/
-    copy_libs ${GCC_DIR}/sysroot/usr/${ABI_DIR}/ mnt/${ABI_DIR}/
+    copy_libs ${SYSROOT}/lib/ mnt/${ABI_DIR}/
+    copy_libs ${SYSROOT}/usr/${ABI_DIR}/ mnt/${ABI_DIR}/
     if [ ! -e mnt/lib/${LDSO_NAME} ]; then
         ln -s /${ABI_DIR}/$(basename ${LDSO_TARGET}) mnt/lib/${LDSO_NAME}
     fi
@@ -106,8 +116,6 @@ copy_libs() {
     chmod 600 mnt/etc/shadow
     touch mnt/var/log/lastlog
     touch mnt/var/log/wtmp
-    #ln -s ../bin/busybox mnt/sbin/init
-    #ln -s busybox mnt/bin/sh
     cp bin/ldd mnt/bin/ldd
 )
 

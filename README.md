@@ -1,4 +1,4 @@
-# Short introduction note
+# Short introduction note to this particular fork
 
 Busybear Linux is the work of Michael J. Clark, this fork is used for
 providing a simple linux set-up on risc-v for tearching or research
@@ -18,6 +18,7 @@ QEMU.
 Note that _this is meant to be compiled with a home made cross-dev
 toolchain_, as there are sysroot dependencies that some distros do not
 provide, TTBOMK.
+The symptom is that boot fails while launching `/sbin/init`.
 
 Also, you cannot compile the 32 and 64 bit versions at the same time, however
 the generated files are in different directories or have different names at the
