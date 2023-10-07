@@ -1,3 +1,0 @@
-[submodule "riscv-pk"]
-	path = src/riscv-pk
-	url = ../riscv-pk.git
